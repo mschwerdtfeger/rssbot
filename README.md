@@ -5,7 +5,7 @@ RSSBot generates an RSS feed of shared articles to read them later with your fav
 #### Step 1: Download Source
 
 ```
-git clone TODO
+git clone https://github.com/oknoeno/rssbot
 ```
 
 #### Step 2: Requirements
