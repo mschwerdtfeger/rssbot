@@ -1,5 +1,7 @@
 # RSS Bot
 
+RSSBot generates an RSS feed of shared articles to read them later with your favorite RSS reader.
+
 #### Step 1: Download Source
 
 ```
