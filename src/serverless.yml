@@ -1,0 +1,125 @@
+# Welcome to Serverless!
+#
+# This file is the main Constants file for your service.
+# It's very minimal at this point and uses default values.
+# You can always add more Constants options for more control.
+# We've included some commented out Constants examples here.
+# Just uncomment any of them to get that Constants option.
+#
+# For full Constants options, check the docs:
+#    docs.serverless.com
+#
+# Happy Coding!
+
+service: rssbot
+
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  stage: dev
+  region: eu-west-1
+
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:Scan"
+        - "dynamodb:Query"
+        - "dynamodb:GetRecords"
+      Resource: { "Fn::Join" : ["", ["arn:aws:dynamodb:*:*:table/", { "Ref" : "RssBotArticleDynamoTable" } ] ]  }
+    - Effect: "Allow"
+      Action:
+        - "SNS:Publish"
+      Resource: "arn:aws:sns:*:*:rssbot-article-topic"
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource: "arn:aws:lambda:*:*:function:rssbot*"
+
+## custom variables
+custom:
+  stage: ${opt:stage, self:provider.stage}
+
+
+functions:
+  createArticle:
+    handler: api/articleApi.createArticle
+    memorySize: 512
+    timeout: 10
+    events:
+      - http:
+          path: article
+          method: put
+
+  getArticlesByOwner:
+    handler: api/articleApi.getArticlesByOwner
+    memorySize: 512
+    timeout: 10
+    events:
+      - http:
+          path: article/owner/{ownerId}
+          method: get
+
+  getOpenGraph:
+    handler: api/openGraphApi.getOpenGraph
+    memorySize: 512
+    timeout: 10
+    events:
+      - http:
+          path: openGraph
+          method: post
+
+  afterArticleCreated:
+    handler: api/articleApi.afterArticleCreated
+    events:
+      - sns: rssbot-article-topic
+
+  getRssFeed:
+    handler: api/rssApi.getRssFeed
+    memorySize: 512
+    timeout: 10
+    events:
+      - http:
+          path: rss/{ownerId}
+          method: get
+          response:
+            headers:
+              Content-Type: "'application/xml'"
+            template: $input.path('result')
+
+  slackWebHook:
+    handler: hooks/slackHook.onPostRequest
+    memorySize: 512
+    timeout: 10
+    events:
+      - http:
+          path: hook/slack/out
+          method: post
+
+# you can add CloudFormation resource templates here
+resources:
+  Resources:
+    RssBotArticleDynamoTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          -
+            AttributeName: "ownerId"
+            AttributeType: "S"
+          -
+            AttributeName: "url"
+            AttributeType: "S"
+        TableName: rssbot-${self:custom.stage}-article
+        KeySchema:
+          -
+            AttributeName: "ownerId"
+            KeyType: "HASH"
+          -
+            AttributeName: "url"
+            KeyType: "RANGE"
+        ProvisionedThroughput:
+          ReadCapacityUnits: "5"
+          WriteCapacityUnits: "5"

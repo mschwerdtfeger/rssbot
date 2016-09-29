@@ -1,0 +1,22 @@
+{
+  "name": "niwi",
+  "version": "0.1.0",
+  "description": "niwi RSS bot. This package uses serverless 1.0.0-rc.1 to deploy the scripts on AWS",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Marc Schwerdtfeger",
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "4.16.2",
+    "open-graph-scraper": "2.3.2",
+    "rss": "1.2.1"
+  },
+  "engines": {
+    "node": "4.3.2"
+  }
+}
